@@ -51,6 +51,8 @@ jobs:
       - name: Configure GitHub Pages
         if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Prepare Pages site
         if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
