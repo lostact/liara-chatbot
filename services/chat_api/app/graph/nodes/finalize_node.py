@@ -16,6 +16,14 @@ summarizer = ConversationSummarizer()
 answer_cache = RedisCache()
 
 
+def _should_cache_answer(state: ChatState) -> bool:
+    return (
+        state.get("confidence") == "high"
+        and state.get("is_sufficient") is True
+        and not state.get("is_shortcut")
+    )
+
+
 async def finalize_node(state: ChatState) -> Dict[str, Any]:
     conv_id_str = state.get("conversation_id")
     final_answer = state.get("final_answer", "")
@@ -68,7 +76,7 @@ async def finalize_node(state: ChatState) -> Dict[str, Any]:
                 message_id = msg_row.id
 
                 # 3. Cache answer for identical future queries (<5ms response)
-                if state.get("confidence") == "high" and not state.get("is_shortcut"):
+                if _should_cache_answer(state):
                     await answer_cache.set_cached_answer(
                         query=user_msg,
                         data={

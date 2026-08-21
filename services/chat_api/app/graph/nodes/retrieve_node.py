@@ -13,10 +13,8 @@ indexer_client = IndexerClient()
 async def retrieve_node(state: ChatState) -> Dict[str, Any]:
     t0 = time.time()
     queries = state.get("search_queries") or [state.get("message", "")]
-    service_tags = state.get("service_tags") or []
     
     filters = SearchFilters(
-        service_tags=service_tags if service_tags else None,
         lang=state.get("lang"),
     )
 

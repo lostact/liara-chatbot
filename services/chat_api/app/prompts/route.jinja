@@ -27,14 +27,14 @@ Your tasks:
    - "refuse": completely off-topic query unrelated to Liara or software deployment on Liara.
    - "answer_from_context": if existing recent conversation contains all needed context.
 
-2. Generate up to 3 optimized search queries:
-   - Original normalized query
-   - English technical variant
-   - Keyword/CLI token variant
+2. Generate exactly one optimized documentation search query:
+   - Return a concise, standalone technical keyword query rather than a conversational sentence.
+   - Preserve the user's intent while removing greetings, filler words, and conversational phrasing.
+   - Resolve transliterated, colloquial, or misspelled technical terms to their canonical names.
+   - Prefer canonical product, protocol, command, and capability names that are likely to appear in documentation.
+   - Do not copy the original query unchanged unless it is already an optimized technical query.
 
-3. Identify relevant Liara service tags (e.g. paas, django, postgres, object-storage, dns, email, cli, etc.).
-
-4. Generate up to 3 concise follow-up question suggestions based directly on the current user query.
+3. Generate up to 3 concise follow-up question suggestions based directly on the current user query.
    - Suggestions must be relevant to this query, actionable, and written in the user's language.
    - Do not generate generic starter suggestions, support-ticket suggestions, or unrelated service suggestions.
 
@@ -42,8 +42,7 @@ Return ONLY a valid JSON object matching this structure:
 {
   "intent": "string",
   "action": "search" | "clarify" | "multi_step" | "refuse" | "answer_from_context",
-  "search_queries": ["query 1", "query 2"],
-  "service_tags": ["tag1"],
+  "search_query": "one optimized technical keyword query",
   "clarify_question": "string or null",
   "clarify_choices": [{"id": "1", "label": "...", "value": "..."}],
   "steps": ["step 1 topic", "step 2 topic"],
