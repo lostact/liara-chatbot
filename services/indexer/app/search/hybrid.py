@@ -175,7 +175,12 @@ class HybridSearchService:
                 dense_timings.append((time.perf_counter() - started) * 1000)
 
         dense_started = time.perf_counter()
-        dense_hits_by_query = await asyncio.gather(*[timed_dense(vec) for vec in vectors])
+        # SQLAlchemy AsyncSession instances are not safe for concurrent database
+        # operations. Keep the searches sequential on this shared session; the
+        # embedding request and lexical phase are still overlapped above.
+        dense_hits_by_query = []
+        for vector in vectors:
+            dense_hits_by_query.append(await timed_dense(vector))
         timings["dense"] = (time.perf_counter() - dense_started) * 1000
         timings["dense_query"] = dense_timings
 
@@ -354,8 +359,13 @@ class HybridSearchService:
         limit: int = 35,
     ) -> List[List[Dict[str, Any]]]:
         """Execute lexical search for all normalized queries."""
-        tasks = [self._lexical_search_single(session, nq, filters, limit) for nq in norm_queries]
-        return await asyncio.gather(*tasks)
+        # AsyncSession cannot execute multiple statements concurrently. Running
+        # these queries sequentially avoids provisioning/concurrent-operation
+        # errors that otherwise silently remove lexical results from RRF.
+        results: List[List[Dict[str, Any]]] = []
+        for normalized_query in norm_queries:
+            results.append(await self._lexical_search_single(session, normalized_query, filters, limit))
+        return results
 
     async def _lexical_search_single(
         self,
