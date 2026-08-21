@@ -40,6 +40,56 @@
       border-radius: 6px;
       margin: 20px 0;
     }
+    .api-config {
+      background: #fff8e1;
+      border-right: 4px solid #f9ab00;
+      padding: 16px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .api-config label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .api-config .api-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .api-config input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font: inherit;
+      direction: ltr;
+    }
+    .api-config button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      background: #0f9d58;
+      color: #ffffff;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+    .api-config button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+    .api-status {
+      min-height: 1.5em;
+      margin: 10px 0 0;
+      font-size: 0.95rem;
+    }
+    .api-status.success { color: #137333; }
+    .api-status.error { color: #c5221f; }
+    @media (max-width: 640px) {
+      .api-config .api-row { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -50,10 +100,25 @@
     <div class="info-box">
       <strong>وضعیت سرورها:</strong>
       <ul>
-        <li>Chat API: <code>http://localhost:8000</code></li>
+        <li>Chat API: آدرس زیر را وارد و بررسی کنید.</li>
         <li>Indexer API: <code>http://localhost:8001</code></li>
-        <li>آیکون چت در گوشه پایین سمت راست فعال است.</li>
+        <li>پس از موفقیت بررسی سلامت، آیکون چت فعال می‌شود.</li>
       </ul>
+    </div>
+
+    <div class="api-config">
+      <label for="api-url-input">آدرس Chat API</label>
+      <div class="api-row" dir="ltr">
+        <input
+          id="api-url-input"
+          type="url"
+          autocomplete="url"
+          placeholder="https://your-chat-api-liara-subdomain"
+        />
+        <button id="check-api-button" type="button">بررسی سلامت و بارگذاری ویجت</button>
+      </div>
+      <p id="api-status" class="api-status" role="status" aria-live="polite"></p>
+      <small>برای API محلی از http://localhost:8000 و برای API لیارا از آدرس HTTPS آن استفاده کنید.</small>
     </div>
 
     <h2>نمونه سوالات برای تست:</h2>
@@ -66,17 +131,97 @@
   </div>
 
   <!-- Local-only widget test page; run `npm run preview` in widget first. -->
-  <!-- Embed Widget -->
-  <script
-    src="http://localhost:4173/widget.js"
-    data-site-key="pk_live_docs_liara_ir"
-    data-api-url="http://localhost:8000"
-    data-lang="fa"
-    data-position="bottom-right"
-    data-allow-fullscreen="true"
-    data-accent="#0f9d58"
-    data-greeting="سلام! من دستیار مستندات لیارا هستم. چه کمکی از دست من برمی‌آید؟"
-    defer>
+  <script>
+    const apiInput = document.getElementById("api-url-input");
+    const checkButton = document.getElementById("check-api-button");
+    const statusElement = document.getElementById("api-status");
+    const queryApiUrl = new URLSearchParams(window.location.search).get("api-url");
+
+    let savedApiUrl = "http://localhost:8000";
+    try {
+      savedApiUrl = localStorage.getItem("liara-chat-api-url") || savedApiUrl;
+    } catch (_) {
+      // Local storage may be unavailable in restrictive browser contexts.
+    }
+    apiInput.value = queryApiUrl || savedApiUrl;
+
+    function normalizeApiUrl(value) {
+      const parsed = new URL(value.trim());
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error("آدرس API باید با http:// یا https:// شروع شود.");
+      }
+      return parsed.href.replace(/\/+$/, "");
+    }
+
+    function setStatus(message, kind = "") {
+      statusElement.textContent = message;
+      statusElement.className = `api-status ${kind}`.trim();
+    }
+
+    async function checkAndLoadWidget() {
+      let apiUrl;
+      try {
+        apiUrl = normalizeApiUrl(apiInput.value);
+      } catch (error) {
+        setStatus(error.message, "error");
+        return;
+      }
+
+      checkButton.disabled = true;
+      setStatus("در حال بررسی سلامت API ...");
+
+      try {
+        const healthResponse = await fetch(`${apiUrl}/healthz`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!healthResponse.ok) {
+          throw new Error(`Health check failed (${healthResponse.status}).`);
+        }
+
+        const readyResponse = await fetch(`${apiUrl}/readyz`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!readyResponse.ok) {
+          throw new Error(`API is alive but not ready (${readyResponse.status}).`);
+        }
+
+        try {
+          localStorage.setItem("liara-chat-api-url", apiUrl);
+        } catch (_) {
+          // Continue even if local storage is unavailable.
+        }
+
+        if (document.getElementById("liara-local-widget-script")) {
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set("api-url", apiUrl);
+          window.location.href = nextUrl.toString();
+          return;
+        }
+
+        const widgetScript = document.createElement("script");
+        widgetScript.id = "liara-local-widget-script";
+        widgetScript.src = "http://localhost:4173/widget.js";
+        widgetScript.dataset.siteKey = "pk_live_docs_liara_ir";
+        widgetScript.dataset.apiUrl = apiUrl;
+        widgetScript.dataset.lang = "fa";
+        widgetScript.dataset.position = "bottom-right";
+        widgetScript.dataset.allowFullscreen = "true";
+        widgetScript.dataset.accent = "#0f9d58";
+        widgetScript.dataset.greeting = "سلام! من دستیار مستندات لیارا هستم. چه کمکی از دست من برمی‌آید؟";
+        widgetScript.onload = () => setStatus("API آماده است و ویجت بارگذاری شد.", "success");
+        widgetScript.onerror = () => setStatus("بارگذاری widget.js از پورت 4173 ناموفق بود.", "error");
+        document.body.appendChild(widgetScript);
+      } catch (error) {
+        setStatus(error.message || "ارتباط با API برقرار نشد.", "error");
+      } finally {
+        checkButton.disabled = false;
+      }
+    }
+
+    checkButton.addEventListener("click", checkAndLoadWidget);
+    apiInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") checkAndLoadWidget();
+    });
   </script>
 </body>
 </html>

@@ -35,8 +35,16 @@ to GitHub Pages. Its Liara API URL is injected during the workflow from the
    npm run preview -- --host 127.0.0.1
    ```
 
-4. With the preview server running, open
-   [`demo/local-test.html`](demo/local-test.html) for the localhost test page.
+4. In another terminal, serve the demo page:
+
+   ```bash
+   python -m http.server 8080 --directory demo
+   ```
+
+5. Open [`demo/local-test.html`](demo/local-test.html). Enter either the local
+   API URL or the deployed Liara API URL, then click the health-check button.
+   The page loads the local widget bundle only after both `/healthz` and
+   `/readyz` succeed.
 
 ## Deployment
 
