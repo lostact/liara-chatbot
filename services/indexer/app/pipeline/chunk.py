@@ -57,7 +57,7 @@ class MarkdownChunker:
         """
         Split markdown into heading-aware semantic chunks.
         """
-        sections = self._split_by_headings(markdown)
+        sections = self._split_by_headings(markdown, doc_title)
         raw_chunks: List[RawChunk] = []
         ordinal = 0
 
@@ -104,7 +104,11 @@ class MarkdownChunker:
 
         return raw_chunks
 
-    def _split_by_headings(self, markdown: str) -> List[tuple[List[str], Optional[str], str]]:
+    def _split_by_headings(
+        self,
+        markdown: str,
+        doc_title: str,
+    ) -> List[tuple[List[str], Optional[str], str]]:
         """
         Splits markdown into sections by H1, H2, H3 headers.
         Returns tuples: (heading_path, anchor, section_text)
