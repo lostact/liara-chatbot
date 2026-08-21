@@ -12,8 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY services/shared/pyproject.toml /app/services/shared/
 COPY services/indexer/pyproject.toml /app/services/indexer/
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install \
+RUN pip install \
     "fastapi>=0.111.0" \
     "uvicorn[standard]>=0.30.0" \
     "pydantic>=2.7.0" \
