@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  indexer:
+    build:
+      context: .
+      dockerfile: services/indexer/Dockerfile
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+    env_file:
+      - .env
+
+  chat-api:
+    build:
+      context: .
+      dockerfile: services/chat_api/Dockerfile
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+    env_file:
+      - .env

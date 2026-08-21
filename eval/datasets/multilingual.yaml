@@ -1,0 +1,14 @@
+- id: "multi_001"
+  query: "چطور env variable رو برای FastAPI set کنم؟"
+  lang: "fa"
+  expected_service_tag: "paas"
+
+- id: "multi_002"
+  query: "How to setup object storage bucket access key in Python boto3?"
+  lang: "en"
+  expected_service_tag: "object-storage"
+
+- id: "multi_003"
+  query: "نحوه تنظیم SSL certificate برای دامنه اختصاصی"
+  lang: "fa"
+  expected_service_tag: "dns"

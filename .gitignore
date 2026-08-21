@@ -1,0 +1,117 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+*.secrets
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python packaging and build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+MANIFEST
+*.whl
+
+# Python test, coverage, and type-checking artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+coverage.xml
+
+# JavaScript / TypeScript dependencies and build output
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn-cache/
+.yarn-integrity
+bower_components/
+*.tsbuildinfo
+
+# Frontend build output
+widget/dist/
+widget/.vite/
+widget/.cache/
+
+# Application and service logs
+*.log
+logs/
+log/
+
+# Local databases, caches, and runtime state
+*.db
+*.sqlite
+*.sqlite3
+*.pid
+*.pid.lock
+*.seed
+*.cache
+.cache/
+.tmp/
+tmp/
+
+# Docker and local service data
+postgres_data/
+redis_data/
+docs_data/
+.docker/
+
+# Generated evaluation and report output
+eval/.cache/
+eval/output/
+eval/results/
+eval/reports/
+*.jsonl
+
+# IDE and editor metadata
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+.history/
+
+# Operating-system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+
+# Local documentation/tool artifacts
+.pyright/

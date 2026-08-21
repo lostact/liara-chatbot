@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indexer"
+version = "0.1.0"
+description = "Liara Docs Indexer & Search Service"
+authors = [{ name = "AI Platform Team" }]
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "sqlalchemy>=2.0.30",
+    "asyncpg>=0.29.0",
+    "pgvector>=0.2.5",
+    "alembic>=1.13.1",
+    "redis>=5.0.4",
+    "arq>=0.25.0",
+    "httpx>=0.27.0",
+    "socksio>=1.0.0",
+    "python-frontmatter>=1.1.0",
+    "pyyaml>=6.0.1",
+    "GitPython>=3.1.43",
+    "prometheus-client>=0.20.0",
+    "shared",
+]
+requires-python = ">=3.11"

@@ -1,0 +1,17 @@
+You are formulating a targeted clarifying question for a user of Liara Cloud.
+
+User Query: {{ user_query }}
+Context / Ambiguity: {{ reason }}
+
+Rules:
+1. Ask ONE concise, friendly question.
+2. Provide 2 to 4 distinct tappable choices that will immediately allow answering the question.
+
+Return ONLY a JSON object:
+{
+  "question": "سوال شفاف‌سازی کوتاه",
+  "choices": [
+    {"id": "choice_1", "label": "گزینه اول", "value": "متن تکمیلی اول"},
+    {"id": "choice_2", "label": "گزینه دوم", "value": "متن تکمیلی دوم"}
+  ]
+}

@@ -1,0 +1,104 @@
+name: Build and Publish Widget Demo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "widget/**"
+      - "demo/**"
+      - ".github/workflows/build-widget.yml"
+  pull_request:
+    paths:
+      - "widget/**"
+      - "demo/**"
+      - ".github/workflows/build-widget.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: widget-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build widget and demo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: widget/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: widget
+
+      - name: Build widget
+        run: npm run build
+        working-directory: widget
+
+      - name: Configure GitHub Pages
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+
+      - name: Prepare Pages site
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        env:
+          DEMO_API_URL: ${{ vars.DEMO_API_URL }}
+          DEMO_SITE_KEY: ${{ vars.DEMO_SITE_KEY }}
+        run: |
+          set -eu
+          test -n "$DEMO_API_URL"
+          test -n "$DEMO_SITE_KEY"
+          mkdir -p _site
+          cp widget/dist/widget.js _site/widget.js
+          cp demo/index.html _site/index.html
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          page = Path("_site/index.html")
+          text = page.read_text(encoding="utf-8")
+          text = text.replace("__DEMO_API_URL__", os.environ["DEMO_API_URL"])
+          text = text.replace("__DEMO_SITE_KEY__", os.environ["DEMO_SITE_KEY"])
+          page.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Upload Pages site
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Upload widget bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: liara-chatbot-widget-${{ github.sha }}
+          path: widget/dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    name: Deploy demo to GitHub Pages
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

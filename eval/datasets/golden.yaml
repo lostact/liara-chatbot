@@ -1,0 +1,27 @@
+- id: "gold_001"
+  query: "چطور برنامه Django رو روی لیارا مستقر کنم؟"
+  lang: "fa"
+  expected_service_tag: "django"
+  expected_url_prefix: "https://docs.liara.ir/paas/django"
+  expected_tokens: ["liara deploy", "liara.json", "requirements.txt"]
+
+- id: "gold_002"
+  query: "How do I connect to PostgreSQL database in Liara?"
+  lang: "en"
+  expected_service_tag: "postgres"
+  expected_url_prefix: "https://docs.liara.ir/databases/postgresql"
+  expected_tokens: ["host", "port", "database", "username"]
+
+- id: "gold_003"
+  query: "نحوه نصب Liara CLI در لینوکس و مک"
+  lang: "fa"
+  expected_service_tag: "cli"
+  expected_url_prefix: "https://docs.liara.ir/references/cli"
+  expected_tokens: ["npm install -g @liara/cli", "liara login"]
+
+- id: "gold_004"
+  query: "چطور در NodeJS متغیر محیطی (environment variable) تعریف کنم؟"
+  lang: "fa"
+  expected_service_tag: "nodejs"
+  expected_url_prefix: "https://docs.liara.ir/paas/nodejs"
+  expected_tokens: ["liara.json", "env", "process.env"]

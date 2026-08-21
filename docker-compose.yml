@@ -1,0 +1,127 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: liara-chatbot-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d liara_chatbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: liara-chatbot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  indexer:
+    build:
+      context: .
+      dockerfile: services/indexer/Dockerfile
+    container_name: liara-chatbot-indexer
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ENV: ${ENV}
+      LOG_LEVEL: ${LOG_LEVEL}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN}
+      ADMIN_OPERATOR_TOKEN: ${ADMIN_OPERATOR_TOKEN}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_PROXY_URL: ${LLM_PROXY_URL}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
+      EMBEDDING_PROXY_URL: ${EMBEDDING_PROXY_URL}
+      ROUTER_MODEL: ${ROUTER_MODEL}
+      SYNTHESIS_MODEL: ${SYNTHESIS_MODEL}
+      SYNTHESIS_FALLBACK_MODEL: ${SYNTHESIS_FALLBACK_MODEL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      EMBEDDING_FALLBACK_MODEL: ${EMBEDDING_FALLBACK_MODEL}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS}
+      EMBEDDING_SEND_DIMENSIONS: ${EMBEDDING_SEND_DIMENSIONS}
+      DOCS_REPO_URL: ${DOCS_REPO_URL}
+      DOCS_REPO_BRANCH: ${DOCS_REPO_BRANCH}
+    volumes:
+      - docs_data:/tmp/liara_docs_repo
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  chat-api:
+    build:
+      context: .
+      dockerfile: services/chat_api/Dockerfile
+    container_name: liara-chatbot-api
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      indexer:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ENV: ${ENV}
+      LOG_LEVEL: ${LOG_LEVEL}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+      INDEXER_BASE_URL: http://indexer:8001
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_PROXY_URL: ${LLM_PROXY_URL}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
+      EMBEDDING_PROXY_URL: ${EMBEDDING_PROXY_URL}
+      ROUTER_MODEL: ${ROUTER_MODEL}
+      SYNTHESIS_MODEL: ${SYNTHESIS_MODEL}
+      SYNTHESIS_FALLBACK_MODEL: ${SYNTHESIS_FALLBACK_MODEL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      EMBEDDING_FALLBACK_MODEL: ${EMBEDDING_FALLBACK_MODEL}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS}
+      EMBEDDING_SEND_DIMENSIONS: ${EMBEDDING_SEND_DIMENSIONS}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  docs_data:

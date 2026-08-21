@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chat_api"
+version = "0.1.0"
+description = "Liara Docs Chatbot API Service"
+authors = [{ name = "AI Platform Team" }]
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "sqlalchemy>=2.0.30",
+    "asyncpg>=0.29.0",
+    "pgvector>=0.2.5",
+    "redis>=5.0.4",
+    "httpx>=0.27.0",
+    "socksio>=1.0.0",
+    "langgraph>=0.0.60",
+    "langchain-core>=0.2.0",
+    "jinja2>=3.1.4",
+    "prometheus-client>=0.20.0",
+    "shared",
+]
+requires-python = ">=3.11"
