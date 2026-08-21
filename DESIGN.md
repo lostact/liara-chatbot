@@ -63,11 +63,11 @@ Three long-running containers plus two managed backing services. See diagram 1 i
 
 | Container | Responsibility | Talks to |
 |---|---|---|
-| `chat-api` (FastAPI + LangGraph) | Public chatbot API, SSE streaming, conversation state, agent graph, prompt assembly, citation verification, rate limiting, widget asset serving. | Postgres, Redis, OpenRouter, `indexer` (HTTP) |
+| `chat-api` (FastAPI + LangGraph) | Public chatbot API, SSE streaming, conversation state, agent graph, prompt assembly, citation verification, and rate limiting. | Postgres, Redis, OpenRouter, `indexer` (HTTP) |
 | `indexer` (FastAPI + arq worker + arq cron, **one** container, one image, 3 processes) | GitHub sync, extraction, cleaning, dedup, versioning, chunking, embedding, indexing, and the **search** endpoint. | Postgres, Redis, OpenRouter (embeddings), GitHub |
 | `db` (Postgres 16 + `pgvector` + `pg_trgm` + `unaccent`) | All persistent state: docs, chunks, vectors, metadata, index state, conversations, feedback, eval results. | — |
 | `redis` | Cache (exact + semantic answer cache, embedding cache), rate-limit counters, arq job queue, SSE pub/sub. | — |
-| `widget` | Static JS/CSS bundle. Built at CI time, served by `chat-api` (`/widget/v1/widget.js`) behind Liara's CDN. | `chat-api` |
+| `widget` | Static JS/CSS bundle. Built and published by GitHub Actions to GitHub Pages. | GitHub Pages |
 
 ### 2.1 Key decisions and trade-offs
 
@@ -504,8 +504,9 @@ All `/admin/*` and `/internal/*` require `X-Internal-Token`; `/admin/*` addition
 
 **Embed**
 ```html
-<script src="https://chat.liara.ir/widget/v1/widget.js"
+<script src="https://lostact.github.io/liara-chatbot/widget.js"
         data-site-key="pk_live_docs_liara_ir"
+        data-api-url="https://chat.liara.ir"
         data-lang="auto" data-position="bottom-right"
         data-accent="#0f9d58" data-greeting="سوالی درباره لیارا دارید؟"
         data-context-from-page="true" defer></script>

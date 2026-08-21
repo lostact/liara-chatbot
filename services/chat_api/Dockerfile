@@ -28,10 +28,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     "jinja2>=3.1.4" \
     "prometheus-client>=0.20.0"
 
-# Copy application source code and built widget bundle
+# Copy application source code
 COPY services/shared /app/services/shared
 COPY services/chat_api /app/services/chat_api
-COPY widget/dist /app/widget/dist
 
 # Install packages in editable mode without redownloading dependencies
 RUN pip install --no-deps -e /app/services/shared -e /app/services/chat_api

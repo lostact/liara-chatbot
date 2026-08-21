@@ -32,10 +32,11 @@ to GitHub Pages. Its Liara API URL is injected during the workflow from the
    cd widget
    npm ci
    npm run build
+   npm run preview -- --host 127.0.0.1
    ```
 
-4. Open [`demo/local-test.html`](demo/local-test.html) for the localhost test
-   page.
+4. With the preview server running, open
+   [`demo/local-test.html`](demo/local-test.html) for the localhost test page.
 
 ## Deployment
 
