@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, Dict, List, Optional
 import httpx
@@ -30,11 +31,21 @@ class IndexerClient:
             "Content-Type": "application/json",
         }
 
+    @staticmethod
+    def _search_cache_key(request: SearchRequest) -> str:
+        """Return a stable identity containing every result-affecting field."""
+        return json.dumps(
+            request.model_dump(exclude_none=True, mode="json"),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
     async def search(self, request: SearchRequest) -> SearchResponse:
         """
         Execute search on indexer service with caching & circuit breaking.
         """
-        cache_key = request.query or (request.queries[0] if request.queries else "")
+        cache_key = self._search_cache_key(request)
         if cache_key:
             cached_res = await self.cache.get_cached_search(cache_key)
             if cached_res:

@@ -9,6 +9,11 @@ from shared.text import normalize_search_text
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+# Keep chat-side caches separate from the indexer's cache and invalidate values
+# written under the previous, incomplete cache-key and quality semantics.
+SEARCH_CACHE_PREFIX = "chat_search_cache_v2"
+ANSWER_CACHE_PREFIX = "chat_answer_cache_v2"
+
 
 class RedisCache:
     def __init__(self, redis_client: Optional[aioredis.Redis] = None):
@@ -35,7 +40,7 @@ class RedisCache:
     async def get_cached_search(self, query: str) -> Optional[Dict[str, Any]]:
         try:
             r = await self.get_redis()
-            key = await self._hash_key("search_cache", query)
+            key = await self._hash_key(SEARCH_CACHE_PREFIX, query)
             val = await r.get(key)
             if val:
                 return json.loads(val)
@@ -46,7 +51,7 @@ class RedisCache:
     async def set_cached_search(self, query: str, data: Dict[str, Any], ttl_seconds: int = 86400 * 7):
         try:
             r = await self.get_redis()
-            key = await self._hash_key("search_cache", query)
+            key = await self._hash_key(SEARCH_CACHE_PREFIX, query)
             await r.setex(key, ttl_seconds, json.dumps(data))
         except Exception as e:
             logger.warning(f"Error setting search cache: {e}")
@@ -54,7 +59,7 @@ class RedisCache:
     async def get_cached_answer(self, query: str) -> Optional[Dict[str, Any]]:
         try:
             r = await self.get_redis()
-            key = await self._hash_key("ans_cache", query)
+            key = await self._hash_key(ANSWER_CACHE_PREFIX, query)
             val = await r.get(key)
             if val:
                 return json.loads(val)
@@ -65,7 +70,7 @@ class RedisCache:
     async def set_cached_answer(self, query: str, data: Dict[str, Any], ttl_seconds: int = 86400 * 3):
         try:
             r = await self.get_redis()
-            key = await self._hash_key("ans_cache", query)
+            key = await self._hash_key(ANSWER_CACHE_PREFIX, query)
             await r.setex(key, ttl_seconds, json.dumps(data))
         except Exception as e:
             logger.warning(f"Error setting answer cache: {e}")

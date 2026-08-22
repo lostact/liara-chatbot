@@ -29,7 +29,6 @@ class ChatState(TypedDict, total=False):
     action: str  # search | clarify | multi_step | refuse | answer_from_context
     intent: str
     search_queries: List[str]
-    service_tags: List[str]
     clarify_action: Optional[ClarifyAction]
     steps: List[str]
     route_confidence: float

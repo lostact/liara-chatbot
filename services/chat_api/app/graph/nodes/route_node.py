@@ -18,6 +18,14 @@ jinja_env = Environment(loader=FileSystemLoader(str(prompts_dir)))
 llm_client = OpenAICompatibleClient()
 
 
+def _extract_search_query(data: Dict[str, Any], user_query: str) -> str:
+    """Return the router's canonical query or the original query as fallback."""
+    search_query = data.get("search_query")
+    if isinstance(search_query, str) and search_query.strip():
+        return search_query.strip()
+    return user_query.strip()
+
+
 async def route_node(state: ChatState) -> Dict[str, Any]:
     t0 = time.time()
     if state.get("is_shortcut"):
@@ -49,8 +57,7 @@ async def route_node(state: ChatState) -> Dict[str, Any]:
         data = json.loads(raw_json)
         action = data.get("action", "search")
         intent = data.get("intent", "general_doc_query")
-        search_queries = data.get("search_queries") or [user_query]
-        service_tags = data.get("service_tags") or []
+        search_query = _extract_search_query(data, user_query)
         steps = data.get("steps") or []
         suggestions = clean_suggestions(data.get("suggestions") or [])
         confidence = float(data.get("confidence", 0.9))
@@ -76,8 +83,7 @@ async def route_node(state: ChatState) -> Dict[str, Any]:
         return {
             "action": action,
             "intent": intent,
-            "search_queries": search_queries,
-            "service_tags": service_tags,
+            "search_queries": [search_query],
             "steps": steps,
             "suggestions": suggestions,
             "clarify_action": clarify_action,
@@ -96,7 +102,6 @@ async def route_node(state: ChatState) -> Dict[str, Any]:
             "action": "search",
             "intent": "fallback_search",
             "search_queries": [user_query],
-            "service_tags": [],
             "suggestions": [],
             "route_confidence": 0.5,
             "timings": timings,
